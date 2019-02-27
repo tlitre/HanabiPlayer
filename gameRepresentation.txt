@@ -1,0 +1,101 @@
+Card:
+	rank [1-5]
+	color [red, green, blue, white, yellow]
+
+Deck:
+	maxDeckSize [50]
+	currentDeckSize [x <= 50]
+	currentDeck [c1, ..., cx] ;;not known by players
+
+Discard Pile:
+	discarded [c1, c2, ...]
+
+Played Pile:
+	played [c1, c2, ...]
+	validNextCards [c1, c2, c3, c4, c5] ;;one for each color
+
+Player Hand:
+	playerHandSize [x <= 5] ;; should always be 5 but could be used to draw cards
+	playerHand [c1, c2, c3, c4, c5] ;;rank or color can be known or unknown
+	playerNextDiscard [ci]
+	playerKnownInHand [c1, ..., c5 where at least a rank or color is known]
+
+Opponent Hand:
+	opponentHand [c1,..., c5] ;;all known
+	opponentNextDiscard [ci]
+
+Game State:
+	numberPlayer [2-5]
+	maxClueTokens [8]
+	currClueTokens [0-8]
+	maxFuses [3]
+	fusesLeft [0-3]
+	maxHandSize [5]
+
+Non-move actions:
+	drawCard(player)
+		- remove top card c from currentDeck
+		- add c to player's hand
+
+	shuffleDeck()
+		-randomize cards in deck
+
+	receiveClue([rank or color], [card indexes])
+		-update playerHand
+		-update playerNextDiscard
+	resetGame()
+	calculateScore()
+		-sum the top ranks of each color in played
+	gameOver()
+		calculateScore()
+
+Moves:
+	discardCard(c)
+		- add c to discard pile
+		- drawCard(player)
+	playCard(c)
+		- remove c from playerHand
+		- if c is in validNextCards
+			- add to played
+			- if c is a 5 currClueTokens++
+		- if not in validNextCards:
+			- fusesLeft--
+			- if fusesLeft == 0 then gameOver()
+			- add c to discarded
+		-drawCard(player)
+	giveClue(c)
+		- can only be done when currClueTokens > 1
+		- currClueTokens--
+		- tellPlayer([rank or color], [card indexes])
+		- add clue to opponentKnows
+
+Metareasoning:
+	opponentKnows [c1,..., c5] ;;what the opponent knows about their own cards
+	opponentMoveGuess [move] ;;best guess at what the opponent will do
+	
+Reasoning:
+	unknownCards [c1, ..., currentDeckSize + playerHandSize - playerKnownInHand.size()]
+	pickNextMove(player) ;;the big one
+	
+;;;;;;;;;;;;;;;;;;;;;;;
+;;;IDEAS FOR REASONING 
+;;;;;;;;;;;;;;;;;;;;;;;
+
+;How do we decide between moves?
+;	- need some sort of ranking system for how "good" a move is
+
+
+;Things we can value (but in what order??):
+;	- Opponent having a good move
+;	- Playing a good move
+;	- Minimizing possiblity of losing important cards (especially with  1 copy left)
+;	- *Discarding bad cards for more clues *(this is up for debate)
+
+;"Good Touch Principle" https://github.com/Zamiell/hanabi-conventions/blob/master/Beginners.md
+;	- Do we only give "good" clues of cards that will be played?
+;	- What about lots of 1s in hand to discard?
+
+;Other important things to represent and think about:
+;	- Recency? If they give me a clue and multiple cards fit it to be played now, play the most ; recent one
+;	- 
+
