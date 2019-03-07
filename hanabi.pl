@@ -27,8 +27,19 @@ first_deal(Cards, Player_Hand, Opponent_Hand, Remaining_Cards) :-
     take(5,CardsToDeal,Opponent_Hand),
     drop(5,CardsToDeal,Remaining_Cards).
 
-setup_board(Board) :-
-    append([],[0,0,0,0,0], Board).
+setup_board([0,0,0,0,0]).
+
+is_board_complete([5,5,5,5,5]).
+
+%% See if a card can be played without losing a fuse token
+is_card_playable(card(1,V,_), [Bd|_]) :- V =:= Bd+1.
+is_card_playable(card(S,V,_), [_|Bd]) :- M is S-1, is_card_playable(card(M,V,_),Bd).
+
+%% get nth card from a hand
+get_card_from_hand(1, [Card|Hand], Card).
+get_card_from_hand(N, [_|Hand], Card) :- M is N-1, get_card_from_hand(M,Hand,Card).
+
+play_round(Cards, Player_Hand, Opponent_Hand, Board, Remaining_Cards, New_Player_Hand, New_Opponent_Hand, new_Board).
 
 play_game() :-
     deck(Cards),
@@ -41,4 +52,8 @@ play_game() :-
     nl,
     write("Starting Board:"),
     nl,
-    write(Board).
+    write(Board),
+    nl,
+    play_round(Remaining_Cards, Player_Hand, Opponent_Hand, Board, New_Remaining_Cards, New_Player_Hand, New_Opponent_Hand, new_Board),
+    write("Game Over."),
+    nl.
