@@ -49,49 +49,54 @@ get_card_from_hand(N, [_|Hand], Card) :- M is N-1, get_card_from_hand(M,Hand,Car
 %% draw_card(Deck, Player_Hand, Remaining_Deck, New_Player_Hand)
 draw_card([Card|Remaining_Cards],Player_Hand,Remaining_Cards,[Card|Player_Hand]).
 
-%% Play a round by discarding the first card in hand
-%% play_discard(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
+%% traces the game and prints game steps
+tracer([]).
+tracer(["nl"|Xs]) :-
+    nl,
+    tracer(Xs).
 
-play_discard(Cards, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+tracer([X|Xs]) :-
+    write(X),
+    tracer(Xs).
+
+%% Play a round by discarding the first card in hand
+%% play_discard(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
+
+play_discard(Cards, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     I is Information_Tokens+1,
-    write("Discarding card:"),
-    write(Card),
-    nl,
-    write("Board: "),
-    nl,
-    write(Board),
-    nl,
-    play_round(Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge).
+    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl"],Trace1),
+    play_round(Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge, Trace1).
 
 %% Play the Game
 %% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
 
 %% End the game if all fuse tokens are used.
-play_round(_,_,_,Board,0,_,_,_) :-
+play_round(_,_,_,Board,0,_,_,_, Trace) :-
+    tracer(Trace),
     write("Out of fuse tokens! Board:"),
     nl,
     write(Board),
     nl.
 
-play_round([],[],_,Board,_,_,_,_) :-
+play_round([],[],_,Board,_,_,_,_,Trace) :-
+    tracer(Trace),
     write("Out of cards! Board:"),
     nl,
     write(Board),
     nl.
 
 %% if player has fewer than 5 cards, draw a card and continue play
-play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     length(Player_Hand, 4),
     length(Cards, N),
     N > 0,
     draw_card(Cards, Player_Hand, Remaining_Cards, New_Player_Hand),
-    write("Drawing card..."),
-    nl,
-    play_round(Remaining_Cards, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+    append(Trace, ["Drawing card...", "nl"], Trace1),
+    play_round(Remaining_Cards, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace1).
 
 %% test agent: play game by discarding every card
-play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-    play_discard(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    play_discard(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
 
 
 play_game() :-
@@ -107,6 +112,6 @@ play_game() :-
     nl,
     write(Board),
     nl,
-    play_round(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0]),
+    play_round(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0], []),
     write("Game Over."),
     nl.
