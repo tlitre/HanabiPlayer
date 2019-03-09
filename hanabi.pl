@@ -37,13 +37,30 @@ is_board_complete([5,5,5,5,5]).
 
 %% See if a card can be played without losing a fuse token
 %% is_card_playable(Card,Board)
-is_card_playable(card(1,V,_), [Bd|_]) :- V =:= Bd+1.
-is_card_playable(card(S,V,_), [_|Bd]) :- M is S-1, is_card_playable(card(M,V,_),Bd).
+is_card_playable(card(1,V,_), [Bd|_]) :-
+    V =:= Bd+1.
+is_card_playable(card(S,V,_), [_|Bd]) :-
+    S > 1,
+    M is S-1,
+    is_card_playable(card(M,V,_),Bd).
+
+%% play_card_to_board(Card, Board, New_Board)
+play_card_to_board(card(1,V,_), [Bd|Remaining_Board], [V|Remaining_Board]) :-
+    V =:= Bd+1.
+play_card_to_board(card(S,V,_), [Bd|Remaining_Board], [Bd|New_Board]) :- 
+    S > 1,
+    M is S-1,
+    play_card_to_board(card(M,V,_),Remaining_Board,New_Board).
 
 %% get nth card from a hand
 %% get_card_from_hand(N,Hand,Card_From_Hand)
 get_card_from_hand(1, [Card|_], Card).
 get_card_from_hand(N, [_|Hand], Card) :- M is N-1, get_card_from_hand(M,Hand,Card).
+
+%% get nth card from a hand and form remaining cards into a new hand
+%% remove_card_from_hand(N, Hand, Card, Remaining_Hand)
+remove_card_from_hand(1, [Card|Remaining_Hand], Card, Remaining_Hand).
+remove_card_from_hand(N, [Card0|Hand], Card, [Card0|Remaining_Hand]) :- M is N-1, remove_card_from_hand(M,Hand,Card, Remaining_Hand).
 
 %% draw a card and add it to player hand.
 %% draw_card(Deck, Player_Hand, Remaining_Deck, New_Player_Hand)
@@ -67,8 +84,25 @@ play_discard(Cards, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Infor
     append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl"],Trace1),
     play_round(Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge, Trace1).
 
+%% play a round by playing nth card
+%% play_card(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
+play_card(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
+    is_card_playable(Card, Board),
+    play_card_to_board(Card,Board,New_Board),
+    append(Trace, ["Playing Card:", Card,"nl","Board:","nl",New_Board,"nl"],Trace1),
+    play_round(Cards,Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
+
+play_card(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
+    \+ is_card_playable(Card, Board),
+    F is Fuse_Tokens-1,
+    append(Trace, ["Playing Card:", Card,"nl","Board:","nl",Board,"nl","Fuse Token lost!","nl"],Trace1),
+    play_round(Cards,Opponent_Hand,Remaining_Hand,Board,F,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
+
+
 %% Play the Game
-%% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
+%% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
 
 %% End the game if all fuse tokens are used.
 play_round(_,_,_,Board,0,_,_,_, Trace) :-
@@ -94,9 +128,13 @@ play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_To
     append(Trace, ["Drawing card...", "nl"], Trace1),
     play_round(Remaining_Cards, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace1).
 
-%% test agent: play game by discarding every card
+%% test agent: play game by playing first card
 play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
-    play_discard(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
+    play_card(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
+
+%% previous test agent: play game by always discarding first card
+%% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+%%    play_discard(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
 
 
 play_game() :-
