@@ -169,6 +169,33 @@ play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_To
     play_inform_color(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace);
     play_discard(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
 
+%%read input when playing with a human
+get_human_input(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    write('Your current hand:'),
+    write(Opponent_Hand),
+    nl,
+    write('Your move! d to discard, p to play, or c to give a clue'),
+    nl,
+    read(Move),
+    play_human_move(Move, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
+
+%%when human player chooses to discard 
+play_human_move(d, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    write('Which card to discard? Answer 1, 2, 3, or 4.'),
+    read(Chop),
+    I is Information_Tokens+1,
+    remove_card_from_hand(Chop, Opponent_Hand, Card, Remaining_Hand),
+    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1), !.
+
+%%human player chooses to play a card
+%%%implemented this by switching the opponent and player hand, not sure if I can do that. will test.
+play_human_move(p, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+    write('Which card to play? Answer 1, 2, 3, or 4.'),
+    read(Play),
+    play_card(Play, Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace),!.
+
+%%TODO: Implement Player Give Clue
+
 %% test agent 2: play game by playing first card
 %% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
 %%    play_card(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
