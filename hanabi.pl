@@ -60,7 +60,9 @@ get_card_from_hand(N, [_|Hand], Card) :- M is N-1, get_card_from_hand(M,Hand,Car
 %% get nth card from a hand and form remaining cards into a new hand
 %% remove_card_from_hand(N, Hand, Card, Remaining_Hand)
 remove_card_from_hand(1, [Card|Remaining_Hand], Card, Remaining_Hand).
-remove_card_from_hand(N, [Card0|Hand], Card, [Card0|Remaining_Hand]) :- M is N-1, remove_card_from_hand(M,Hand,Card, Remaining_Hand).
+remove_card_from_hand(N, [Card0|Hand], Card, [Card0|Remaining_Hand]) :- 
+    M is N-1,
+    remove_card_from_hand(M,Hand,Card, Remaining_Hand).
 
 %% draw a card and add it to player hand.
 %% draw_card(Deck, Player_Hand, Remaining_Deck, New_Player_Hand)
@@ -79,27 +81,27 @@ tracer([X|Xs]) :-
 %% Play a round by discarding the nth card in hand
 %% play_discard(N, Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
 
-play_discard(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_discard(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     I is Information_Tokens+1,
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1),
-    play_round(Cards, Opponent_Hand, Remaining_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge, Trace1).
+    play_round(Cards, [Card|Discard_Pile], Opponent_Hand, Remaining_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge, Trace1).
 
 %% play a round by playing nth card
 %% play_card(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
-play_card(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     is_card_playable(Card, Board),
     play_card_to_board(Card,Board,New_Board),
     append(Trace, ["Playing Card:", Card,"nl","Board:","nl",New_Board,"nl"],Trace1),
-    play_round(Cards,Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
+    play_round(Cards, Discard_Pile, Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
 
-play_card(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     \+ is_card_playable(Card, Board),
     F is Fuse_Tokens-1,
     append(Trace, ["Playing Card:", Card,"nl","Board:","nl",Board,"nl","Fuse Token lost!","nl"],Trace1),
-    play_round(Cards,Opponent_Hand,Remaining_Hand,Board,F,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
+    play_round(Cards, [Card|Discard_Pile], Opponent_Hand,Remaining_Hand,Board,F,Information_Tokens,Opponent_Knowledge,Player_Knowledge,Trace1).
 
 %% return the card Suite
 %% get_card_color(Card, Color)
@@ -127,27 +129,27 @@ match_knowledge([A|As],[B|Bs], [C|RestAcc]) :-
 %% play an information token to provide knowledge to other player
 %% in this case, provide information on the color of the nth card
 %% play_inform_color(N, Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
-play_inform_color(N, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_inform_color(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     I is Information_Tokens-1,
     get_card_from_hand(N, Player_Hand, Card),
     get_card_color(Card,Color),
     match_colors(Color,Opponent_Hand,Matched_Colors),
     match_knowledge(Matched_Colors,Opponent_Knowledge,New_Opponent_Knowledge),
     append(Trace,["Giving color knowledge to opponent:","nl",Matched_Colors,"nl"],Trace1),
-    play_round(Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge, Trace1).
+    play_round(Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge, Trace1).
 
 %% Play the Game
 %% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
 
 %% End the game if all fuse tokens are used.
-play_round(_,_,_,Board,0,_,_,_, Trace) :-
+play_round(_,_,_,_,Board,0,_,_,_, Trace) :-
     tracer(Trace),
     write("Out of fuse tokens! Board:"),
     nl,
     write(Board),
     nl.
 
-play_round([],[],_,Board,_,_,_,_,Trace) :-
+play_round([],[],_,_,Board,_,_,_,_,Trace) :-
     tracer(Trace),
     write("Out of cards! Board:"),
     nl,
@@ -155,44 +157,45 @@ play_round([],[],_,Board,_,_,_,_,Trace) :-
     nl.
 
 %% if player has fewer than 5 cards, draw a card and continue play
-play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     length(Player_Hand, 4),
     length(Cards, N),
     N > 0,
     draw_card(Cards, Player_Hand, Remaining_Cards, New_Player_Hand),
     append(Trace, ["Drawing card...", "nl"], Trace1),
-    play_round(Remaining_Cards, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace1).
-
+    play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace1).
+ 
 %% test agent3: play game by spending all information tokens, then discarding cards
-play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     Information_Tokens \= 0,
-    play_inform_color(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace);
-    play_discard(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
+    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace);
+    play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
 
 %%read input when playing with a human
-get_human_input(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+get_human_input(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     write('Your current hand:'),
     write(Opponent_Hand),
     nl,
     write('Your move! d to discard, p to play, or c to give a clue'),
     nl,
     read(Move),
-    play_human_move(Move, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
+    play_human_move(Move, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace).
 
 %%when human player chooses to discard 
-play_human_move(d, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
+play_human_move(d, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     write('Which card to discard? Answer 1, 2, 3, or 4.'),
-    read(Chop),
+    read(D),
     I is Information_Tokens+1,
-    remove_card_from_hand(Chop, Opponent_Hand, Card, Remaining_Hand),
-    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1), !.
+    remove_card_from_hand(D, Opponent_Hand, Card, Remaining_Hand),
+    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1),
+    play_round(.
 
 %%human player chooses to play a card
 %%%implemented this by switching the opponent and player hand, not sure if I can do that. will test.
 play_human_move(p, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     write('Which card to play? Answer 1, 2, 3, or 4.'),
-    read(Play),
-    play_card(Play, Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace),!.
+    read(P),
+    play_card(P, Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace),!.
 
 %%TODO: Implement Player Give Clue
 
@@ -222,6 +225,7 @@ play_game() :-
     nl,
     write(Board),
     nl,
-    play_round(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0], []),
+    %play_round(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0], []),
+    get_human_input(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0], []), 
     write("Game Over."),
     nl.
