@@ -156,6 +156,10 @@ play_round([],[],_,_,Board,_,_,_,_,Trace) :-
     write(Board),
     nl.
 
+%% Scoring Function
+
+score_board(Board) :-
+    
 %% if player has fewer than 5 cards, draw a card and continue play
 play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
     length(Player_Hand, 4),
@@ -187,8 +191,7 @@ play_human_move(d, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_
     read(D),
     I is Information_Tokens+1,
     remove_card_from_hand(D, Opponent_Hand, Card, Remaining_Hand),
-    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1),
-    play_round(.
+    append(Trace,["Discarding card:", Card, "nl", "Board: ", "nl", Board, "nl", "Information Tokens remaining:",I,"nl"],Trace1).
 
 %%human player chooses to play a card
 %%%implemented this by switching the opponent and player hand, not sure if I can do that. will test.
@@ -197,7 +200,7 @@ play_human_move(p, Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Inform
     read(P),
     play_card(P, Cards, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace),!.
 
-%%TODO: Implement Player Give Clue
+%%TODO: Implement Human Player Gives Clue
 
 %% test agent 2: play game by playing first card
 %% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace) :-
