@@ -84,6 +84,7 @@ tracer([X|Xs]) :-
 play_discard(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     I is Information_Tokens+1,
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
+    remove_card_from_hand(N, Player_Knowledge, _, New_Player_Knowledge),
     write("Discarding card:"),
     write(Card),
     nl,
@@ -95,7 +96,7 @@ play_discard(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tok
     write(I),
     nl,
     !,
-    play_round(Cards, [Card|Discard_Pile], Opponent_Hand, Remaining_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, Player_Knowledge).
+    play_round(Cards, [Card|Discard_Pile], Opponent_Hand, Remaining_Hand, Board, Fuse_Tokens, I, Opponent_Knowledge, New_Player_Knowledge).
 
 %% play a round by playing nth card
 %% play_card(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
@@ -103,6 +104,7 @@ play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     is_card_playable(Card, Board),
     play_card_to_board(Card,Board,New_Board),
+    remove_card_from_hand(N, Player_Knowledge, _, New_Player_Knowledge),
     write("Playing Card:"),
     write(Card),
     nl,
@@ -111,12 +113,13 @@ play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens
     write(New_Board),
     nl,
     !,
-    play_round(Cards, Discard_Pile, Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,Player_Knowledge).
+    play_round(Cards, Discard_Pile, Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,New_Player_Knowledge).
 
 play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     \+ is_card_playable(Card, Board),
     F is Fuse_Tokens-1,
+    remove_card_from_hand(N, Player_Knowledge, _, New_Player_Knowledge),
     write("Playing Card: "),
     write(Card),
     nl,
@@ -127,7 +130,7 @@ play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens
     write("Fuse Token lost!"),
     nl,
     !,
-    play_round(Cards, [Card|Discard_Pile], Opponent_Hand,Remaining_Hand,Board,F,Information_Tokens,Opponent_Knowledge,Player_Knowledge).
+    play_round(Cards, [Card|Discard_Pile], Opponent_Hand,Remaining_Hand,Board,F,Information_Tokens,Opponent_Knowledge, New_Player_Knowledge).
 
 %% return the card Suite
 %% get_card_color(Card, Color)
@@ -143,6 +146,22 @@ match_colors(Color,[card(Color,_,_)|Rest],[Color|RestAcc]) :-
 match_colors(Color, [card(S,_,_)|Rest],[0|RestAcc]) :-
     S \= Color,
     match_colors(Color, Rest, RestAcc).
+
+%% return the card value
+%% get_card_value(Card, Value)
+get_card_value(card(_,V,_), V).
+
+%% check if the values of hand cards match value
+%% match_values(Value, Hand, Matched_Values)
+match_values(_,[], []).
+
+match_values(Value,[card(_,Value,_)|Rest],[ValueShifted|RestAcc]) :-
+    ValueShifted is Value*10,
+    match_values(Value, Rest, RestAcc).
+
+match_values(Value, [card(_,V,_)|Rest],[0|RestAcc]) :-
+    V \= Value,
+    match_values(Value, Rest, RestAcc).
 
 %% maps 3rd argument to the logical or of first two arguments
 %% match_knowledge(New_Information, Existing_Knowledge, Updated_Knowledge)
@@ -167,6 +186,22 @@ play_inform_color(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fus
     nl,
     !,
     play_round(Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge).
+
+%% play an information token to provide knowledge to other player
+%% play_inform_value(N,Deck,Discard_Pile,Player_Hand,Opponent_Hand,Board,Fuse_Tokens,Information_Tokens,Player_Knowledge,Opponent_Knowledge)
+play_inform_value(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    I is Information_Tokens-1,
+    get_card_from_hand(N, Opponent_Hand, Card),
+    get_card_value(Card,Value),
+    match_values(Value,Opponent_Hand,Matched_Values),
+    match_knowledge(Matched_Values,Opponent_Knowledge,New_Opponent_Knowledge),
+    write("Giving value knowledge to opponent:"),
+    nl,
+    write(Matched_Values),
+    nl,
+    !,
+    play_round(Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge).
+
 
 %%read input when playing with a human
 get_human_input(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
@@ -235,13 +270,23 @@ play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, 
     write("Drawing card..."),
     nl,
     !,
-    play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+    play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [0|Player_Knowledge], Opponent_Knowledge).
  
-%% test agent3: play game by spending all information tokens, then discarding cards
+
+%% test agent 4: play game by spending all information tokens, then discarding cards
 play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-    Information_Tokens \= 0,
-    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+   Information_Tokens \= 0,
+   play_inform_value(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+   Information_Tokens \= 0,
+   play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+   play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+
+
+%% test agent 3: play game by spending all information tokens, then discarding cards
+%% play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+%%   Information_Tokens \= 0,
+%%    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+%%   play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %% test agent 2: play game by playing first card
 %% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
@@ -270,6 +315,6 @@ play_game() :-
     write(Board),
     nl,
     play_round(Remaining_Cards, [], Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0]),
-    %get_human_input(Remaining_Cards, Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0], []), 
+    %get_human_input(Remaining_Cards, [], Player_Hand, Opponent_Hand, Board, 3, 8, [0,0,0,0,0], [0,0,0,0,0]), 
     write("Game Over."),
     nl.
