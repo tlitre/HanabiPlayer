@@ -211,15 +211,15 @@ play_inform_value(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fus
     play_round(Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge).
 
 %% get card suite from knowledge
-get_suite_from_knowledge(1, [Knowlege|_],Suite) :-
-    Suite is mod(Knowlege,10).
+get_suite_from_knowledge(1, [Knowledge|_],Suite) :-
+    Suite is mod(Knowledge,10).
 get_suite_from_knowledge(N, [_|RestKnowledge], Suite) :-
     M is N-1,
     get_suite_from_knowledge(M, RestKnowledge, Suite).
 
 %% get card value from knowledge
-get_value_from_knowledge(1, [Knowlege|_],Value) :-
-    Value is div(Knowlege,10).
+get_value_from_knowledge(1, [Knowledge|_],Value) :-
+    Value is div(Knowledge,10).
 get_value_from_knowledge(N, [_|RestKnowledge], Value) :-
     M is N-1,
     get_value_from_knowledge(M, RestKnowledge, Value).
