@@ -59,14 +59,14 @@ get_card_from_hand(N, [_|Hand], Card) :- M is N-1, get_card_from_hand(M,Hand,Car
 
 %% get nth card from a hand and form remaining cards into a new hand
 %% remove_card_from_hand(N, Hand, Card, Remaining_Hand)
-remove_card_from_hand(1, [Card|Remaining_Hand], Card, Remaining_Hand),!.
+remove_card_from_hand(1, [Card|Remaining_Hand], Card, Remaining_Hand).
 remove_card_from_hand(N, [Card0|Hand], Card, [Card0|Remaining_Hand]) :- 
     M is N-1,
     remove_card_from_hand(M,Hand,Card, Remaining_Hand).
 
 %% draw a card and add it to player hand.
 %% draw_card(Deck, Player_Hand, Remaining_Deck, New_Player_Hand)
-draw_card([Card|Remaining_Cards],Player_Hand,Remaining_Cards,[Card|Player_Hand]),!.
+draw_card([Card|Remaining_Cards],Player_Hand,Remaining_Cards,[Card|Player_Hand]).
 
 %% traces the game and prints game steps
 tracer([]).
@@ -78,10 +78,11 @@ tracer([X|Xs]) :-
     write(X),
     tracer(Xs).
 
-%%TODO move around player and opponent knowledge for when a player or their opponent plays/discards a card.
-%%initialize the drawn card (leftmost) to no knowledge.
-%%Fixes knowledge indexing when cards are removed from hand
-fix_player_knowledge(N, Player_Hand, Player_Knowledge, New_Knowledge). 
+%% TODO move around player and opponent knowledge for when a player or their opponent plays/discards a card.
+%% initialize the drawn card (leftmost) to no knowledge.
+%% Fixes knowledge indexing when cards are removed from hand
+%% this Should not be necessary any more
+%% fix_player_knowledge(N, Player_Hand, Player_Knowledge, New_Knowledge). 
     
 
 %% Play a round by discarding the nth card in hand
@@ -187,38 +188,10 @@ play_inform_color(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fus
     get_card_color(Card,Color),
     match_colors(Color,Opponent_Hand,Matched_Colors),
     match_knowledge(Matched_Colors,Opponent_Knowledge,New_Opponent_Knowledge),
-%% Play the Game
-%% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace)
-
-%% End the game if all fuse tokens are used.
-play_round(_,_,_,_,Board,0,_,_,_, Trace) :-
-    tracer(Trace),
-    write("Out of fuse tokens! Board:"),
     write("Giving color knowledge to opponent:"),
     nl,
     write(Matched_Colors),
     nl,
-    write(Board),
-    nl.
-
-%% Scoring Function
-%% TODO: score_board function. This is just a sum function
-score_board(Board) :-
-    
-%% if player has fewer than 5 cards, draw a card and continue play
-play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-    length(Player_Hand, 4),
-    length(Cards, N),
-    N > 0,
-    draw_card(Cards, Player_Hand, Remaining_Cards, New_Player_Hand),
-    append(Trace, ["Drawing card...", "nl"], Trace1),
-    play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge, Trace1).
- 
-%% test agent3: play game by spending all information tokens, then discarding cards
-play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-    Information_Tokens \= 0,
-    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
     !,
     play_round(Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, I, New_Opponent_Knowledge, Player_Knowledge).
 
@@ -261,7 +234,7 @@ card_should_be_played(N,Knowledge,Board) :-
     get_card_from_knowledge(N,Knowledge,Card),
     is_card_playable(Card,Board).
 
-%%read input when playing with a human
+%% read input when playing with a human
 get_human_input(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     write('Your current hand:'),
     write(Opponent_Hand),
@@ -271,29 +244,20 @@ get_human_input(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tok
     read(Move),
     play_human_move(Move, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
-%%when human player chooses to discard 
-play_human_move(d, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+%% when human player chooses to discard 
+play_human_move("d", Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     write('Which card to discard? Answer 1, 2, 3, or 4.'),
     read(D),
-    I is Information_Tokens+1,
-    remove_card_from_hand(D, Opponent_Hand, Card, Remaining_Hand),
+    !,
+    play_discard(D,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
-%%human player chooses to play a card
-%%%implemented this by switching the opponent and player hand, not sure if I can do that. will test.
-play_human_move(p, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+%% human player chooses to play a card
+%% implemented this by switching the opponent and player hand, not sure if I can do that. will test.
+play_human_move("p", Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     write('Which card to play? Answer 1, 2, 3, or 4.'),
     read(P),
-    play_card(P, Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge),!.
-    write("Discarding card: "), 
-    write(Card), 
-    nl, 
-    write("Board: "), 
-    nl, 
-    write(Board), 
-    nl,
-    write("Information Tokens remaining:"),
-    I,
-    nl.
+    !,
+    play_card(P, Cards, Discard_Pile, Opponent_Hand, Player_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %%human player chooses to play a card
 %%%implemented this by switching the opponent and player hand, not sure if I can do that. will test.
