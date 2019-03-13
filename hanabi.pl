@@ -115,7 +115,7 @@ play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens
     write("Playing Card:"),
     write(Card),
     nl,
-    wrtie("Board:"),
+    write("Board:"),
     nl,
     write(New_Board),
     nl,
@@ -314,13 +314,13 @@ play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, 
     length(Opponent_Hand,N),
     get_suite_from_knowledge(N,Opponent_Knowledge,Suite),
     Suite =:= 0,
-    play_inform_value(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    play_inform_color(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
 
     Information_Tokens \= 0,
     length(Opponent_Hand,N),
     get_value_from_knowledge(N,Opponent_Knowledge, Value),
     Value =:= 0,
-    play_inform_color(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    play_inform_value(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
 
     length(Player_Hand, 5),
     Information_Tokens = 0,
