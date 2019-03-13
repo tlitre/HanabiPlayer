@@ -292,23 +292,44 @@ play_round([],_,[],_,Board,_,_,_,_) :-
     
 %% if player has fewer than 5 cards, draw a card and continue play
 play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-    length(Player_Hand, 4),
     length(Cards, N),
+    length(Player_Hand,M),
     N > 0,
+    M < 5,
     draw_card(Cards, Player_Hand, Remaining_Cards, New_Player_Hand),
     write("Drawing card..."),
     nl,
     !,
     play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [0|Player_Knowledge], Opponent_Knowledge).
  
+%% test agent 5: play playable cards
+play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [PKnowledge_First_Card|Player_Knowledge], [Knowledge_First_Card|Opponent_Knowledge]) :-
+    PKnowledge_First_Card>=10,
+    card_should_be_played(1, Player_Knowledge, Board),
+    play_card(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [PKnowledge_First_Card|Player_Knowledge], [Knowledge_First_Card|Opponent_Knowledge]);
+
+    Information_Tokens \= 0,
+    Knowledge_First_Card < 1,
+    play_inform_value(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [PKnowledge_First_Card|Player_Knowledge], [Knowledge_First_Card|Opponent_Knowledge]);
+
+    Information_Tokens \= 0,
+    Knowledge_First_Card < 10,
+    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [PKnowledge_First_Card|Player_Knowledge], [Knowledge_First_Card|Opponent_Knowledge]).
+
+play_round(Cards, Discard_Pile, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    length([Card|Player_Hand], 5),
+    Information_Tokens = 0,
+    play_discard(5,Cards, Discard_Pile, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    length(Cards,0),
+    play_discard(1,Cards, Discard_Pile, [Card|Player_Hand], Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %% test agent 4: play game by spending all information tokens, then discarding cards
-play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-   Information_Tokens \= 0,
-   play_inform_value(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-   Information_Tokens \= 0,
-   play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-   play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+%% play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+%%    Information_Tokens \= 0,
+%%    play_inform_value(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+%%    Information_Tokens \= 0,
+%%    play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+%%    play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 
 %% test agent 3: play game by spending all information tokens, then discarding cards
@@ -318,8 +339,8 @@ play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, 
 %%   play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %% test agent 2: play game by playing first card
-%% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
-%%    play_card(1,Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+%%play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+%%   play_card(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %% test agent 1: play game by always discarding first card
 %% play_round(Cards, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
