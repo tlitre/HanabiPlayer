@@ -283,22 +283,35 @@ play_human_move("p", Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fus
 
 %% Scoring Function
 score_board([], 0).
-score_board([Bd|RestBd],Score) :- Score =:= Bd + RestScore, score_board(RestBd,RestScore).
+score_board([Bd|RestBd],Score) :-
+    score_board(RestBd,RestScore),
+    Score is Bd+RestScore.
 
 %% Play the Game
 %% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
 
 %% End the game if all fuse tokens are used.
 play_round(_,_,_,_,Board,0,_,_,_) :-
+    score_board(Board, Score),
     write("Out of fuse tokens! Board:"),
     nl,
     write(Board),
+    nl,
+    write("Score:"),
+    nl,
+    write(Score),
     nl.
+    
 
 play_round([],_,[],_,Board,_,_,_,_) :-
+    score_board(Board, Score),
     write("Out of cards! Board:"),
     nl,
     write(Board),
+    nl,
+    write("Score:"),
+    nl,
+    write(Score),
     nl.
     
 %% if player has fewer than 5 cards, draw a card and continue play
