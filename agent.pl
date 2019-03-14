@@ -1,3 +1,6 @@
+%% include the main file
+:- consult(hanabi).
+
 %% leftmost card in hand is the newest, rightmost unmarked is the chop
 %% always play your leftmost playable card
 %% always discard the chop if discarding
@@ -52,28 +55,65 @@ get_reversed_chop(Reversed_Hand, [Card|Rest_Hand], [Card_Knowledge|Rest_Knowledg
 
 %% Card is the only one of its kind (color/value combo)
 
-card_is_unique([_,5,_], _).
+card_is_unique(card(_,5,_), _).
 
-card_is_unique([Color, Value, _], Discard_Pile) :-
+card_is_unique(card(Color,Value,_), Discard_Pile) :-
    total_in_deck(Value, Total),
-   findall(I, has_card([Color, Value, _], Discard_Pile), J),
-   length(J, Count),
-   Total - Count <= 1.
+   findall(I, has_card(card(Color,Value,_), Discard_Pile), L),
+   length(L, Count),
+   Total - Count <= 1, !.
 
 %% TODO check if any cards below it have all been discarded
-card_is_useless([Color, Value, _], Board) :-
+card_is_useless(card(Color,Value,_) Board) :-
     I is Color + 1,
     nth0(I, Board, Score),
-    Score >= Value.
+    Score >= Value, !.
     
 %% Check if the card is not discardable
 card_is_important(Card, Discard_Pile, Board) :-
     +\ card_is_useless(Card, Board),
-    card_is_unique(Card, Discard_Pile).
+    card_is_unique(Card, Discard_Pile), !.
+
+value_possibly_playable(Value, Board) :-
+    V is Value - 1,
+    member(card(_, V, _), Board),!.
+
+suite_possible_playable(Value, Board) :-
+    S is Suit - 1,
+    nth0(S, Board, Score),
+    Score < 5, !.
+    
 
 %% TODO
 %% Figure out if we know we have a playable card
-    get_own_playable(Player_Hand, Player_Knowledge) :-
+% The case where we have full information about a card.
+
+get_own_playable(_, 6, _) :-
+    false.
+
+get_own_playable(Player_Knowledge, Left_Playable, Board) :-
+    get_value_from_knowledge(Left_Playable, Player_Knowledge, Value),  
+    get_suite_from_knowledge(Left_Playable, Player_Knowledge, Suite),
+    Suite > 0,
+    Value > 0,
+    is_card_playable(card(Suite, Value, _), Board), !.
+
+get_own_playable(Player_Knowledge, Left_Playable, Board) :- 
+    get_value_from_knowledge(Left_Playable, Player_Knowledge, Value),  
+    get_suite_from_knowledge(Left_Playable, Player_Knowledge, Suite),
+    Value > 0,
+    Suite = 0,
+    value_possibly_playable(Value, Board), ! ;
+
+    get_value_from_knowledge(Left_Playable, Player_Knowledge, Value),  
+    get_suite_from_knowledge(Left_Playable, Player_Knowledge, Suite),
+    Value = 0,
+    Suite > 0,
+    suit_possibly_playable(Value, Board), ! ;
+
+    Incr is Left_Playable + 1,
+    get_own_playable(Player_Knowledge, Incr, Board), !.
+
 
 
 %% flowchart for agent decisions:
@@ -96,13 +136,36 @@ card_is_important(Card, Discard_Pile, Board) :-
 %%%%%  MAIN REASONER  %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%Player Hand is included for control flow purposes but cannot be used in reasoning
+
+%%TODO implement __decisions functions (talking to game representation)
+
+%% no info tokens, agent no playables
+agent_reasoner(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    Information_Tokens = 0,
+    +\ get_own_playable(Player_Knowledge, Left_Playable, Board),
+    get_chop(Player_Hand, Player_Knowledge, Chop),
+    discard_card_decision(Chop), !.
+
+%% opponent has a move, agent no playables
+
+agent_reasoner(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    Information_Tokens > 0,
+    get_opponent_playables(Opponent_Hand, Board, Playables),
+    opponent_knows_play(Opponent_Hand, Opponent_Knowledge, Playables), 
+    get_own_playable(Player_Knowledge, Left_Playable, Board),
+    play_card_decision(Left_Playable), !.
+
+%% case where we end up playing a card
 agent_reasoner(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     Information_Tokens > 0,
     get_opponent_playables(Opponent_Hand, Board, Playables),
     \+ opponent_knows_play(Opponent_Hand, Opponent_Knowledge, Playables),
     get_chop(Opponent_Hand, Opponent_Knowledge, Chop),
     \+ card_is_important(Chop, Discard_Pile, Board),
-    get_own_playable(Player_Hand, Player_Knowledge),
+    get_own_playable(Player_Knowledge, Left_Playable, Board),
+    play_card_decision(Left_Playable), !.
+
+
 
 
 %% Helpers
