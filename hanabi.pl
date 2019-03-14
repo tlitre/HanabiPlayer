@@ -107,6 +107,8 @@ play_discard(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tok
 
 %% play a round by playing nth card
 %% play_card(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
+
+%% Case where the card valid and is played to board
 play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     is_card_playable(Card, Board),
@@ -122,6 +124,7 @@ play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens
     !,
     play_round(Cards, Discard_Pile, Opponent_Hand,Remaining_Hand,New_Board,Fuse_Tokens,Information_Tokens,Opponent_Knowledge,New_Player_Knowledge).
 
+%% Case where card is misplayed and we lose a fuse token
 play_card(N, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
     remove_card_from_hand(N, Player_Hand, Card, Remaining_Hand),
     \+ is_card_playable(Card, Board),
