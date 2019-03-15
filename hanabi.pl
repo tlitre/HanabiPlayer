@@ -287,6 +287,43 @@ score_board([Bd|RestBd],Score) :-
     score_board(RestBd,RestScore),
     Score is Bd+RestScore.
 
+%% try to inform the opponent of the value of card M
+try_play_inform_value(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    Information_Tokens \= 0,
+    length(Opponent_Hand,N),
+    M < N,
+    M > 0,
+    get_value_from_knowledge(M,Opponent_Knowledge, Value),
+    Value =:= 0,
+    play_inform_value(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+
+%% try to inform the opponent of the color of card M
+try_play_inform_color(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    Information_Tokens \= 0,
+    length(Opponent_Hand,N),
+    M =< N,
+    M > 0,
+    get_suite_from_knowledge(M,Opponent_Knowledge, Color),
+    Color =:= 0,
+    play_inform_color(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+
+%% try to discard card M
+try_play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    length(Player_Hand,N),
+    M =< N,
+    M > 0,
+    card_should_be_discarded(M, Player_Knowledge, Board),
+    play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+
+%% try to play card M
+try_play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge) :-
+    length(Player_Hand,N),
+    M =< N,
+    M > 0,
+    card_should_be_played(M, Player_Knowledge, Board),
+    play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
+
+
 %% Play the Game
 %% play_round(Deck, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge)
 
@@ -338,105 +375,32 @@ play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, 
     !,
     play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [0|Player_Knowledge], Opponent_Knowledge); 
 
-    length(Player_Hand,N),
-    card_should_be_played(N, Player_Knowledge, Board),
-    play_card(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_card(5,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_card(4,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_card(3,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_card(2,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_card(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
 
-    length(Player_Hand,N),
-    M is N-1,
-    M > 0,
-    card_should_be_played(M, Player_Knowledge, Board),
-    play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_discard(5,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_discard(4,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_discard(3,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_discard(2,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_discard(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+
+    try_play_inform_color(5,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_value(5,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);    
+
+    try_play_inform_color(4,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_value(4,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+
+    try_play_inform_color(3,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_value(3,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
     
-    length(Player_Hand,N),
-    M is N-2,
-    M > 0,
-    card_should_be_played(M, Player_Knowledge, Board),
-    play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    length(Player_Hand,N),
-    M is N-3,
-    M > 0,
-    card_should_be_played(M, Player_Knowledge, Board),
-    play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    length(Player_Hand,N),
-    M is N-4,
-    M > 0,
-    card_should_be_played(M, Player_Knowledge, Board),
-    play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_color(2,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_value(2,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
 
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    get_suite_from_knowledge(N,Opponent_Knowledge,Suite),
-    Suite =:= 0,
-    play_inform_color(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    get_value_from_knowledge(N,Opponent_Knowledge, Value),
-    Value =:= 0,
-    play_inform_value(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    M is N-1,
-    M > 0,
-    get_suite_from_knowledge(M,Opponent_Knowledge,Suite),
-    Suite =:= 0,
-    play_inform_color(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    M is N-1,
-    M > 0,
-    get_value_from_knowledge(M,Opponent_Knowledge, Value),
-    Value =:= 0,
-    play_inform_value(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    M is N-2,
-    M > 0,
-    get_suite_from_knowledge(M,Opponent_Knowledge,Suite),
-    Suite =:= 0,
-    play_inform_color(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    Information_Tokens \= 0,
-    length(Opponent_Hand,N),
-    M is N-2,
-    M > 0,
-    get_value_from_knowledge(M,Opponent_Knowledge, Value),
-    Value =:= 0,
-    play_inform_value(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    length(Player_Hand,N),
-    card_should_be_discarded(N, Player_Knowledge, Board),
-    play_discard(N,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-
-    length(Player_Hand,N),
-    M is N-1,
-    M > 0,
-    card_should_be_discarded(M, Player_Knowledge, Board),
-    play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    length(Player_Hand,N),
-    M is N-2,
-    M > 0,
-    card_should_be_discarded(M, Player_Knowledge, Board),
-    play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    length(Player_Hand,N),
-    M is N-3,
-    M > 0,
-    card_should_be_discarded(M, Player_Knowledge, Board),
-    play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
-    
-    length(Player_Hand,N),
-    M is N-4,
-    M > 0,
-    card_should_be_discarded(M, Player_Knowledge, Board),
-    play_discard(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_color(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
+    try_play_inform_value(1,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
 
     Information_Tokens = 0,
     length(Player_Hand,N),
