@@ -74,7 +74,9 @@ Knowledge about card color is represented in two forms, one a number and one a c
 
 ### Early Reasoning Attempts
 
-`try_play_inform_value`, `try_play_inform_color`, `try_play_card`, and `try_play_discard` contain some basic reasoning to try and play the corresponding moves. If successful, play continues from the given input state. Try play card and try play discard are safe moves. Try play inform will try not to duplicate knowledge
+`try_play_inform_value`, `try_play_inform_color`, `try_play_card`, and `try_play_discard` contain some basic reasoning to try and play the corresponding moves. If successful, play continues from the given input state. Try play card and try play discard are safe moves. Try play inform will try not to duplicate knowledge.
+
+`discard_no_knowledge`, `discard_not_five`, `discard_if_one`, and `discard_unplayable` all represent attempts to reason about how cards should be discarded. If successful, play continues from the given input state.
 
 `play_round` contains reasoning for deciding that the game has ended and reasoning for how to play a move. Currently, this consists of drawing a card if possible, trying to play a safe card, trying to discard a safe card, trying to inform the other player of new knowledge, then trying to discard as a last resort.
 
