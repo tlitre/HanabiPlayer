@@ -414,6 +414,17 @@ play_round(Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, 
     !,
     play_round(Remaining_Cards, Discard_Pile, New_Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, [0|Player_Knowledge], Opponent_Knowledge); 
 
+    length(Opponent_Hand, M),
+    M < 5,
+    length(Cards, N),
+    N > 0,
+    draw_card(Cards, Opponent_Hand, Remaining_Cards, New_Opponent_Hand),
+    write("Opponent Drawing Card!"),
+    nl,
+    !,
+    play_round(Remaining_Cards, Discard_Pile, Player_Hand, New_Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, [0|Opponent_Knowledge]); 
+
+
     try_play_card(5,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
     try_play_card(4,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
     try_play_card(3,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge);
