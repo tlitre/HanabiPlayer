@@ -1,6 +1,10 @@
 # HanabiPlayer
 A Hanabi-playing agent that emulates human-like conventions and reasoning in Prolog.
 
+## Quickstart:
+
+To watch our agent play out the game, consult the agent.pl file in SWI-Prolog and run `play_clever_game.`
+
 ## Hanabi.pl
 
 This file contains the core representation of the game and early attempts at creating a reasoning agent.
@@ -81,3 +85,17 @@ Knowledge about card color is represented in two forms, one a number and one a c
 `play_round` contains reasoning for deciding that the game has ended and reasoning for how to play a move. Currently, this consists of drawing a card if possible, trying to play a safe card, trying to discard a safe card, trying to inform the other player of new knowledge, then trying to discard as a last resort.
 
 `play_game` puts everything together, constructing the Board, Deck, Hands, and Knowledge, then starting the first move.
+
+### CleverAgent
+
+The agent in agent.pl uses a few conventions to some success, scoring as high as 24 in our testing – though it averages in the low teens.
+
+`agent_reasoner` contains the main reasoner, with a series of disjunctions that decide what to do given the current state
+
+`card_is_important` checks whether a card is a 5 or the last left of its kind
+
+`get_opponent_playable` finds playable cards in our opponents hand
+
+`get_own_playable`, `value_possibly_playable`, and `suite_possibly_playable` reason on the knowledge the agent has about its cards, deeming something playable if the information known leads to the card potentially being playable
+
+`decide_best_clue` finds a clue that maximizes the proportion of playable cards touched when giving a clue, deciding on an attribute and a specific clue
