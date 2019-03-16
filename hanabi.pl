@@ -178,7 +178,13 @@ match_values(Value, [card(_,V,_)|Rest],[0|RestAcc]) :-
 match_knowledge([],[],[]).
 
 match_knowledge([A|As],[B|Bs], [C|RestAcc]) :-
-    C is A \/ B,
+    M1 is A mod 10,
+    M2 is B mod 10,
+    M3 is M1 \/ M2,
+    M4 is A div 10,
+    M5 is B div 10,
+    M6 is M4 \/ M5,    
+    C is M3 + M6*10,
     match_knowledge(As,Bs,RestAcc).
 
 %%TODO test this and do the same for numbers
@@ -374,6 +380,8 @@ play_risky(M, Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Token
     M > 0,
     get_suite_from_knowledge(M, Player_Knowledge, Suite),
     Suite =:= 0,
+    write("Risky move!"),
+    nl,
     play_card(M,Cards, Discard_Pile, Player_Hand, Opponent_Hand, Board, Fuse_Tokens, Information_Tokens, Player_Knowledge, Opponent_Knowledge).
 
 %% Play the Game
