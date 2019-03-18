@@ -3,7 +3,9 @@ A Hanabi-playing agent that emulates human-like conventions and reasoning in Pro
 
 ## Quickstart:
 
-To watch our agent play out the game, consult the agent.pl file in SWI-Prolog and run `play_clever_game.`
+To watch our agents play out the game, consult the agent.pl file in SWI-Prolog and run `play_clever_game.` This agent makes takes several risks and is our fullest implementation of reasoning, however is still a bit buggy.
+
+Our more conservative and polished agent, though not without some quirks, can be run by consulting hanabi.pl and running `play_game.`
 
 ## Hanabi.pl
 
