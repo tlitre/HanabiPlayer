@@ -1,6 +1,7 @@
 # HanabiPlayer
 [Hanabi](https://en.wikipedia.org/wiki/Hanabi_(card_game)) is a fireworks-themed cooperative card game. Read more about it, and why we chose to tackle an agent for it in this project, [here](https://tlitre.webflow.io/work/hanabi).
-A Hanabi-playing agent that emulates human-like conventions and reasoning in Prolog.
+
+Our implementation of a Hanabi-playing agent emulates human-like conventions and reasoning and is written in Prolog.
 
 ## Quickstart:
 
